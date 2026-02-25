@@ -1,0 +1,15 @@
+fastapi
+uvicorn[standard]
+supabase
+python-dotenv
+ocpp
+websockets
+SQLAlchemy
+psycopg2-binary
+scipy
+numpy
+pandas
+redis
+celery
+httpx
+pydantic-settings
