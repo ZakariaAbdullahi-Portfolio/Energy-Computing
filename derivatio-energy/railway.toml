@@ -5,17 +5,3 @@ builder = "dockerfile"
 startCommand = "uvicorn app.main:app --host 0.0.0.0 --port $PORT"
 healthcheckPath = "/health"
 restartPolicyType = "on_failure"
-```
-
----
-
-### `.gitignore`
-```
-__pycache__/
-*.pyc
-.env
-.venv/
-venv/
-*.egg-info/
-dist/
-.DS_Store
