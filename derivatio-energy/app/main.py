@@ -23,3 +23,7 @@ app.include_router(entsoe.router, prefix="/api/v1")
 @app.get("/health")
 def health():
     return {"status": "ok", "service": "derivatio-energy-api"}
+
+@app.get("/health")
+async def health():
+    return {"status": "ok"}
