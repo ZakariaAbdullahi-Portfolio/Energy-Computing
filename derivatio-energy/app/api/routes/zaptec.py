@@ -30,3 +30,23 @@ async def list_chargers(installation_id: str, username: str, password: str):
         raise HTTPException(status_code=401, detail="Zaptec-inloggning misslyckades")
     chargers = await get_chargers(token, installation_id)
     return {"chargers": chargers, "count": len(chargers)}
+
+
+class DispatchRequest(BaseModel):
+    installation_id: str
+    schedule: list[dict]
+    username: str = ""
+    password: str = ""
+
+
+from app.services.dispatcher import dispatch_schedule
+
+@router.post("/dispatch")
+async def dispatch(req: DispatchRequest):
+    result = await dispatch_schedule(
+        schedule=req.schedule,
+        installation_id=req.installation_id,
+        username=req.username or None,
+        password=req.password or None,
+    )
+    return result
