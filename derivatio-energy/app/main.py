@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.api.routes import simulation, tariffs, entsoe
+from app.api.routes import simulation, tariffs, entsoe, zaptec
 
 app = FastAPI(
     title="Derivatio Energy API",
@@ -19,6 +19,7 @@ app.add_middleware(
 app.include_router(simulation.router, prefix="/api/v1")
 app.include_router(tariffs.router, prefix="/api/v1")
 app.include_router(entsoe.router, prefix="/api/v1")
+app.include_router(zaptec.router)
 
 @app.get("/health")
 def health():
