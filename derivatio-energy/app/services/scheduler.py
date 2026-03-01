@@ -11,7 +11,7 @@ from datetime import datetime, timedelta
 from typing import Optional
 from app.services.dispatcher import dispatch_schedule
 from app.core.optimizer import run_simulation
-from app.models.simulation import SimulationInput, PropertyInput, FleetInput, TariffInput  # befintlig LP-motor
+from app.models.simulation import SimulationInput  # befintlig LP-motor
 
 logger = logging.getLogger(__name__)
 
