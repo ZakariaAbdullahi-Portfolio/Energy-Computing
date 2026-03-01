@@ -10,7 +10,8 @@ import logging
 from datetime import datetime, timedelta
 from typing import Optional
 from app.services.dispatcher import dispatch_schedule
-from app.services.optimizer import run_optimization  # befintlig LP-motor
+from app.core.optimizer import run_simulation
+from app.models.simulation import SimulationInput, PropertyInput, FleetInput, TariffInput  # befintlig LP-motor
 
 logger = logging.getLogger(__name__)
 
@@ -108,22 +109,28 @@ async def _process_customer(customer: dict, period_start: str, period_end: str) 
     """Kör optimering och dispatch för en enskild kund."""
     name = customer["name"]
     try:
-        # Kör LP-optimering
-        optimization_result = await run_optimization(
-            property_data=customer["property"],
-            fleet_data=customer["fleet"],
-            tariff_data=customer["tariff"],
+        from app.models.property import Property, Fleet
+        from app.models.tariff import GridTariff
+
+        inp = SimulationInput(
+            property=Property(**customer["property"]),
+            fleet=Fleet(**customer["fleet"]),
+            tariff=GridTariff(**customer["tariff"]),
             period_start=period_start,
             period_end=period_end,
         )
 
-        if not optimization_result or "schedule" not in optimization_result:
+        result = run_simulation(inp)
+
+        if not result or not result.hourly_data:
             return {"customer": name, "status": "error", "error": "Optimering returnerade inget schema"}
 
-        schedule = optimization_result["schedule"]
-        savings = optimization_result.get("savings_total", 0)
+        # Bygg dispatch-schema från hourly_data
+        schedule = [
+            {"hour": int(h.timestamp[11:13]), "charger_kw": round(h.ev_kw_with, 2)}
+            for h in result.hourly_data
+        ]
 
-        # Dispatcha till Zaptec
         dispatch_result = await dispatch_schedule(
             schedule=schedule,
             installation_id=customer["installation_id"],
@@ -134,9 +141,10 @@ async def _process_customer(customer: dict, period_start: str, period_end: str) 
         return {
             "customer": name,
             "status": "ok",
-            "savings_sek": round(savings, 0),
+            "savings_sek": round(result.savings_total, 0),
             "slots_dispatched": dispatch_result.get("dispatched", 0),
             "mock": dispatch_result.get("mock", False),
+            "data_quality": result.data_quality,
         }
 
     except Exception as e:
